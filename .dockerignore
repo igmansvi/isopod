@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+workspaces
+docker-compose.yml
+Dockerfile
+README.md
+
+# Security: Never leak env files or local DBs into docker image
+.env
+.env.*
+*.db
+*.log
+.vercel

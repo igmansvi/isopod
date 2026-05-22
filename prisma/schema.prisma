@@ -1,0 +1,42 @@
+// ---------------------------------------------------------------------------
+// Isopod — Prisma Schema
+// ---------------------------------------------------------------------------
+// Defines the PostgreSQL data model for user accounts and their
+// container-backed development environments.
+// ---------------------------------------------------------------------------
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+/// Registered platform user authenticated via username / password.
+model User {
+  id           String        @id @default(cuid())
+  username     String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  environments Environment[]
+}
+
+/// A Docker-backed development environment owned by a single user.
+/// Each environment maps 1-to-1 with a container and a host workspace
+/// directory at {WORKSPACES_ROOT}/{username}/{name}.
+model Environment {
+  id            String   @id @default(cuid())
+  name          String
+  image         String   @default("node:lts-alpine")
+  containerId   String?
+  status        String   @default("stopped") // stopped | running | creating | error
+  workspacePath String
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, name])
+}
