@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, Input } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebSocketService } from '../../core/services/websocket.service';
@@ -11,10 +11,11 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-terminal',
   standalone: true,
-  template: `<div #terminalContainer class="w-full h-full bg-[#0d0d0d] p-2"></div>`
+  template: `<div #terminalContainer class="w-full h-full bg-terminal-bg p-2 overflow-hidden"></div>`
 })
 export class TerminalComponent implements AfterViewInit, OnDestroy {
   @Input() public envId!: string;
+  @Output() public commandExecuted = new EventEmitter<void>();
   @ViewChild('terminalContainer') private readonly terminalContainer!: ElementRef<HTMLElement>;
 
   private terminal?: Terminal;
@@ -52,6 +53,9 @@ export class TerminalComponent implements AfterViewInit, OnDestroy {
 
     this.terminal.onData((data) => {
       this.wsService.sendMessage(data);
+      if (data === '\r') {
+        setTimeout(() => this.commandExecuted.emit(), 500);
+      }
     });
 
     this.messageSub = this.wsService.getMessages().subscribe({

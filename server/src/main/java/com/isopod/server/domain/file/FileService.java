@@ -5,12 +5,10 @@ import com.isopod.server.domain.environment.EnvironmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,9 +40,13 @@ public class FileService {
             throw new IllegalArgumentException("Path is not a directory");
         }
 
-        try (Stream<Path> stream = Files.list(targetPath)) {
+        try (Stream<Path> stream = Files.walk(targetPath)) {
             return stream
-                    .map(path -> path.getFileName().toString() + (Files.isDirectory(path) ? "/" : ""))
+                    .filter(p -> !p.equals(targetPath))
+                    .map(path -> {
+                        String relative = targetPath.relativize(path).toString().replace('\\', '/');
+                        return relative + (Files.isDirectory(path) ? "/" : "");
+                    })
                     .collect(Collectors.toList());
         }
     }

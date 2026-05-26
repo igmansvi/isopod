@@ -43,11 +43,9 @@ public class AuthService {
 
         userRepository.save(user);
 
-        // Auto-provision default stopped ubuntu environment
         try {
             environmentService.createStoppedEnvironment(user.getUsername(), "default-ubuntu", "ubuntu:latest");
         } catch (Exception e) {
-            // Log but don't fail registration
             e.printStackTrace();
         }
 

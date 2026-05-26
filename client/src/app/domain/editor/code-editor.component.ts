@@ -8,7 +8,7 @@ import loader from '@monaco-editor/loader';
 @Component({
   selector: 'app-code-editor',
   standalone: true,
-  template: `<div #editorContainer class="w-full h-full bg-[#1e1e1e]"></div>`
+  template: `<div #editorContainer class="w-full h-full bg-editor-bg"></div>`
 })
 export class CodeEditorComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() public content = '';
@@ -39,12 +39,10 @@ export class CodeEditorComponent implements AfterViewInit, OnChanges, OnDestroy 
 
       this.isInitializing = false;
 
-      // Listen for content changes
       this.editorInstance.onDidChangeModelContent(() => {
         this.contentChanged.emit(this.editorInstance.getValue());
       });
 
-      // Bind Ctrl+S / Cmd+S
       this.editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
         this.saveRequested.emit(this.editorInstance.getValue());
       });
@@ -64,9 +62,6 @@ export class CodeEditorComponent implements AfterViewInit, OnChanges, OnDestroy 
     }
     
     if (changes['language'] && this.editorInstance) {
-      // Monaco uses a global registry to set language models.
-      // For simplicity in this lifecycle hook, we ignore dynamic language switching 
-      // unless we recreate the model, but this handles the basics.
     }
   }
 

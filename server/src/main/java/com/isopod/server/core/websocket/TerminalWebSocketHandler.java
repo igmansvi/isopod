@@ -77,14 +77,12 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
                         session.sendMessage(new TextMessage(text));
                     }
                 } catch (IOException e) {
-                    // Ignore
                 }
             }
 
             @Override
             public void onError(Throwable throwable) {
                 if (throwable.getMessage() != null && throwable.getMessage().toLowerCase().contains("pipe")) {
-                    // Ignore expected pipe closure during container stop/deletion
                     return;
                 }
                 super.onError(throwable);

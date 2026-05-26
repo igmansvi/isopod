@@ -26,8 +26,11 @@ public class EnvironmentService {
     private final UserRepository userRepository;
     private final DockerClient dockerClient;
 
-    @Value("${application.workspace.root:./workspaces}")
+    @Value("${application.workspace.root:../workspaces}")
     private String workspacesRoot;
+
+    @Value("${WORKSPACE_HOST:${application.workspace.root:../workspaces}}")
+    private String hostWorkspacesRoot;
 
     /**
      * Retrieves all environments for a specific user.
@@ -75,8 +78,9 @@ public class EnvironmentService {
             dockerClient.pullImageCmd(image).start();
         }
 
-        String hostWorkspacePath = new File(workspacesRoot, username + File.separator + request.getName()).getAbsolutePath();
-        File workspaceDir = new File(hostWorkspacePath);
+        String localWorkspacePath = new File(workspacesRoot, username + File.separator + request.getName()).getAbsolutePath();
+        String hostWorkspacePath = hostWorkspacesRoot + "/" + username + "/" + request.getName();
+        File workspaceDir = new File(localWorkspacePath);
         if (!workspaceDir.exists()) {
             workspaceDir.mkdirs();
         }
@@ -99,7 +103,7 @@ public class EnvironmentService {
                 .image(image)
                 .containerId(container.getId())
                 .status("running")
-                .workspacePath(hostWorkspacePath)
+                .workspacePath(localWorkspacePath)
                 .user(user)
                 .build();
 
@@ -127,8 +131,9 @@ public class EnvironmentService {
             dockerClient.pullImageCmd(image).start();
         }
 
-        String hostWorkspacePath = new File(workspacesRoot, username + File.separator + envName).getAbsolutePath();
-        File workspaceDir = new File(hostWorkspacePath);
+        String localWorkspacePath = new File(workspacesRoot, username + File.separator + envName).getAbsolutePath();
+        String hostWorkspacePath = hostWorkspacesRoot + "/" + username + "/" + envName;
+        File workspaceDir = new File(localWorkspacePath);
         if (!workspaceDir.exists()) {
             workspaceDir.mkdirs();
         }
@@ -149,7 +154,7 @@ public class EnvironmentService {
                 .image(image)
                 .containerId(container.getId())
                 .status("stopped")
-                .workspacePath(hostWorkspacePath)
+                .workspacePath(localWorkspacePath)
                 .user(user)
                 .build();
 
@@ -169,7 +174,6 @@ public class EnvironmentService {
             try {
                 dockerClient.stopContainerCmd(env.getContainerId()).exec();
             } catch (Exception e) {
-                // Container might already be stopped
             }
         }
         env.setStatus("stopped");
@@ -204,17 +208,14 @@ public class EnvironmentService {
             try {
                 dockerClient.stopContainerCmd(env.getContainerId()).exec();
             } catch (Exception e) {
-                // ignore
             }
             try {
                 dockerClient.removeContainerCmd(env.getContainerId()).exec();
             } catch (Exception e) {
-                // ignore
             }
         }
         environmentRepository.delete(env);
 
-        // Delete physical workspace directory
         if (env.getWorkspacePath() != null) {
             File workspaceDir = new File(env.getWorkspacePath());
             if (workspaceDir.exists()) {

@@ -29,8 +29,8 @@ export class WebSocketService implements OnDestroy {
 
     this.socket$ = webSocket({
       url: `${this.baseUrl}?envId=${envId}`,
-      deserializer: msg => msg.data, // Expect raw text from backend, not JSON
-      serializer: msg => msg       // Send raw text to backend
+      deserializer: msg => msg.data,
+      serializer: msg => msg
     });
 
     this.subscription = this.socket$.subscribe({
