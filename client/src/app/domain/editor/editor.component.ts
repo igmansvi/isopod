@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TerminalComponent } from './terminal.component';
@@ -22,6 +22,8 @@ export class EditorComponent implements OnInit {
   
   public envId: string | null = null;
   public environment: Environment | null = null;
+  
+  @ViewChild('fileTree') private readonly fileTreeComponent?: FileTreeComponent;
 
   public readonly selectedFile = signal<string | null>(null);
   public readonly fileContent = signal<string>('');
@@ -45,6 +47,15 @@ export class EditorComponent implements OnInit {
   }
 
   /**
+   * Refreshes the file tree when an external event (like a terminal command) happens.
+   */
+  public refreshFileTree(): void {
+    if (this.fileTreeComponent) {
+      this.fileTreeComponent.loadFiles(true);
+    }
+  }
+
+  /**
    * Fetches the content of the selected file from the backend.
    *
    * @param {string} filePath The path to the file
@@ -57,8 +68,6 @@ export class EditorComponent implements OnInit {
     this.hasUnsavedChanges.set(false);
     this.saveSuccess.set(false);
 
-    // Assuming the path returned by tree doesn't have a leading slash but the API needs it,
-    // or just pass it directly if the backend handles it.
     const cleanPath = filePath.startsWith('/') ? filePath : `/${filePath}`;
 
     this.apiService.get<any>(`/files?envId=${this.envId}&path=${cleanPath}&action=read`).subscribe({
@@ -117,12 +126,11 @@ export class EditorComponent implements OnInit {
       content: content
     }).subscribe({
       next: () => {
-        this.fileContent.set(content); // Sync up the baseline
+        this.fileContent.set(content);
         this.isSaving.set(false);
         this.hasUnsavedChanges.set(false);
         this.saveSuccess.set(true);
         
-        // Hide the "Saved" badge after 2 seconds
         setTimeout(() => this.saveSuccess.set(false), 2000);
       },
       error: (err) => {

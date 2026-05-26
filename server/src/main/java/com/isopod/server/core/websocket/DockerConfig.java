@@ -9,8 +9,6 @@ import com.github.dockerjava.transport.DockerHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.Duration;
-
 /**
  * Configuration class that sets up the Docker Java client.
  * Uses the OkHttp transport which natively supports Windows named pipes,

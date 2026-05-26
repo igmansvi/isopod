@@ -27,7 +27,7 @@ src/app/
 
 - **Framework:** [Angular 21](https://angular.dev/) (Standalone Components)
 - **State Management:** [Angular Signals](https://angular.dev/guide/signals) (`signal`, `computed`)
-- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/) (Minimalist, Brutalist Dark Theme)
+- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/) (Minimalist, Brutalist Dark Theme driven by highly semantic `@theme` tokens mapped directly in `styles.css`)
 - **Code Editor:** [Monaco Editor](https://microsoft.github.io/monaco-editor/) (`@monaco-editor/loader`)
 - **Terminal:** [xterm.js](https://xtermjs.org/) + `xterm-addon-fit`
 - **HTTP/Routing:** [RxJS](https://rxjs.dev/) + Angular HttpClient
@@ -41,7 +41,7 @@ The core IDE experience is constructed by wiring three distinct components toget
 - **`TerminalComponent`**: Instantiates `xterm.js` and securely pipes bidirectional streams directly to the Spring Boot backend via the `WebSocketService`.
 
 ### 2. Environment Domain (`domain/environment`)
-- **`DashboardComponent`**: Renders a dynamic grid of user workspaces. Supports instant environment creation (using dynamically fetched templates from the Health API), start/stop toggling, and deletion workflows, leveraging Tailwind for high-end micro-interactions.
+- **`DashboardComponent`**: Renders a dynamic, fully responsive CSS grid of user workspaces. Supports instant environment creation (using dynamically fetched templates from the Health API), start/stop toggling, and deletion workflows, leveraging Tailwind for high-end micro-interactions. All UI rendering strictly uses the modern Angular `@if`/`@for` block control flow syntax for optimized performance.
 
 ### 3. Authentication Domain (`domain/auth`)
 - **`AuthStateService`**: A centralized Signal-based store replacing traditional state management libraries (like NgRx or Zustand). Holds the JWT token and user session data reactivity.
@@ -51,6 +51,9 @@ The core IDE experience is constructed by wiring three distinct components toget
 - **`SystemHealthIndicatorComponent`**: A floating telemetry ping embedded exclusively within the authenticated dashboard view to continuously monitor backend connection health.
 - **`UserService`**: Handles cascading account deletion workflows and persistent user state operations.
 
-## ⚙️ Configuration
+## ⚙️ Configuration & Deployment
 
 API and WebSocket URLs are centrally managed in `src/environments/environment.ts` (Production) and `environment.development.ts` (Local Development). All HTTP requests are automatically intercepted by `JwtInterceptor` to attach the Bearer token based on the environment configuration.
+
+**Production Deployment:**
+The frontend is built for production using a multi-stage Dockerfile (`Dockerfile`). The build step compiles the Angular application (`npm run build -- --configuration=production`), and the output is served via the `serve` NPM package on port 8080. This internal port is then reverse-proxied by the central **Nginx** gateway in the root `docker-compose.yaml` setup.

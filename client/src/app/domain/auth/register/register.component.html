@@ -4,61 +4,89 @@
       <img src="icon.svg" class="w-6 h-6" alt="Isopod Logo" />
       <span class="text-xl font-bold">Isopod</span>
     </div>
-    
+
     <h2 class="text-lg font-semibold mb-6">Register</h2>
 
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="w-full flex flex-col items-center">
-      
-      <div *ngIf="errorMessage()" class="w-full mb-4 p-2 border border-red-500 text-red-500 text-xs text-center">
-        {{ errorMessage() }}
-      </div>
+    <form
+      [formGroup]="registerForm"
+      (ngSubmit)="onSubmit()"
+      class="w-full flex flex-col items-center"
+    >
+      @if (errorMessage()) {
+        <div class="w-full mb-4 p-2 border border-red-500 text-red-500 text-xs text-center">
+          {{ errorMessage() }}
+        </div>
+      }
 
       <div class="flex flex-col gap-1 w-full mb-4">
         <label for="username" class="text-sm">Username</label>
-        <input 
-          id="username" 
-          type="text" 
-          formControlName="username" 
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
           class="bg-black border border-white text-white p-2 text-sm focus:outline-none w-full"
-          [ngClass]="{'border-red-500': registerForm.get('username')?.invalid && registerForm.get('username')?.touched}"
+          [ngClass]="{
+            'border-red-500':
+              registerForm.get('username')?.invalid && registerForm.get('username')?.touched,
+          }"
         />
-        <span *ngIf="registerForm.get('username')?.invalid && registerForm.get('username')?.touched" class="text-[10px] text-red-500 mt-1">Min 3 characters required</span>
+        @if (registerForm.get('username')?.invalid && registerForm.get('username')?.touched) {
+          <span class="text-2xs text-red-500 mt-1">Min 3 characters required</span>
+        }
       </div>
 
       <div class="flex flex-col gap-1 w-full mb-4">
         <label for="password" class="text-sm">Password</label>
-        <input 
-          id="password" 
-          type="password" 
-          formControlName="password" 
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
           class="bg-black border border-white text-white p-2 text-sm focus:outline-none w-full"
-          [ngClass]="{'border-red-500': registerForm.get('password')?.invalid && registerForm.get('password')?.touched}"
+          [ngClass]="{
+            'border-red-500':
+              registerForm.get('password')?.invalid && registerForm.get('password')?.touched,
+          }"
         />
-        <span *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="text-[10px] text-red-500 mt-1">Min 6 characters required</span>
+        @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
+          <span class="text-2xs text-red-500 mt-1">Min 6 characters required</span>
+        }
       </div>
 
       <div class="flex flex-col gap-1 w-full mb-6">
         <label for="confirmPassword" class="text-sm">Confirm Password</label>
-        <input 
-          id="confirmPassword" 
-          type="password" 
-          formControlName="confirmPassword" 
+        <input
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
           class="bg-black border border-white text-white p-2 text-sm focus:outline-none w-full"
-          [ngClass]="{'border-red-500': registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched || registerForm.hasError('mismatch')}"
+          [ngClass]="{
+            'border-red-500':
+              (registerForm.get('confirmPassword')?.invalid &&
+                registerForm.get('confirmPassword')?.touched) ||
+              registerForm.hasError('mismatch'),
+          }"
         />
-        <span *ngIf="registerForm.hasError('mismatch') && registerForm.get('confirmPassword')?.touched" class="text-[10px] text-red-500 mt-1">Passwords do not match</span>
+        @if (registerForm.hasError('mismatch') && registerForm.get('confirmPassword')?.touched) {
+          <span class="text-2xs text-red-500 mt-1">Passwords do not match</span>
+        }
       </div>
 
-      <button 
-        type="submit" 
+      <button
+        type="submit"
         [disabled]="isLoading()"
-        class="text-sm font-semibold hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mb-6">
-        <span *ngIf="isLoading()">Creating account...</span>
-        <span *ngIf="!isLoading()">Sign up</span>
+        class="text-sm font-semibold hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+      >
+        @if (isLoading()) {
+          <span>Creating account...</span>
+        }
+        @if (!isLoading()) {
+          <span>Sign up</span>
+        }
       </button>
-      
+
       <div class="text-xs text-neutral-400 w-full text-center border-t border-neutral-800 pt-6">
-        Already have an account? <a routerLink="/auth/login" class="text-white hover:underline">Sign in</a>
+        Already have an account?
+        <a routerLink="/auth/login" class="text-white hover:underline">Sign in</a>
       </div>
     </form>
   </div>

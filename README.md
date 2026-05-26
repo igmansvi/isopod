@@ -31,7 +31,8 @@ Isopod is a monorepo consisting of two distinct modules. For detailed architectu
 
 - **[Backend (Spring Boot) Documentation](./server/README.md)**
 - **[Frontend (Angular) Documentation](./client/README.md)**
-- **[System Architecture & Technical Docs](./docs/README.md)**
+- **[System Architecture Documentation](./docs/architecture.md)**
+- **[Full Documentation Directory](./docs/)**
 
 ## 🚀 Getting Started
 
@@ -43,7 +44,9 @@ Ensure you have the following installed on your machine:
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (ensure the Docker daemon is running)
 - [PostgreSQL](https://www.postgresql.org/)
 
-### 1. Local Development
+### 1. Local Development (Docker Compose)
+
+The entire Isopod stack is orchestrated via Docker Compose, which spins up the database, backend, frontend, and an Nginx reverse proxy simultaneously.
 
 1. **Clone the repository:**
    ```bash
@@ -51,30 +54,20 @@ Ensure you have the following installed on your machine:
    cd isopod
    ```
 
-2. **Initialize the Database:**
-   Ensure PostgreSQL is running and you have created a database named `isopod`.
-
-3. **Configure Environment Variables:**
-   Copy the example environment files and configure your secrets:
+2. **Start the Stack:**
+   Ensure Docker Desktop is running, then execute:
    ```bash
-   cp server/.env.example server/.env
-   cp client/.env.example client/.env
+   docker compose up -d
    ```
+   *Note: On first run, this will pull base images (Postgres, Nginx, Node, Eclipse Temurin) and build the client and server images from source. This may take a few minutes.*
 
-4. **Start the Backend (Spring Boot):**
-   ```bash
-   cd server
-   ./mvnw spring-boot:run
-   ```
+3. **Access the Application:**
+   Once all containers report as `healthy`, open [http://localhost](http://localhost) in your browser.
 
-5. **Start the Frontend (Angular):**
-   ```bash
-   cd ../client
-   npm install
-   npm start
-   ```
-
-6. Open [http://localhost:4200](http://localhost:4200) in your browser.
+   The embedded **Nginx** container automatically routes traffic:
+   - `/api/*` ➡️ Spring Boot Backend
+   - `/ws/*` ➡️ Spring Boot WebSocket Handlers
+   - `/*` ➡️ Angular Frontend (Node static server)
 
 ## 🐳 Docker Integration Details
 

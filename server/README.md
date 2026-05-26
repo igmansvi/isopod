@@ -27,8 +27,8 @@ src/main/java/com/isopod/server/
 - **Database:** [PostgreSQL](https://www.postgresql.org/) (via [Hibernate/Spring Data JPA](https://hibernate.org/))
 - **Security:** [Spring Security 6](https://spring.io/projects/spring-security) + Stateless [JWT](https://jwt.io/)
 - **Docker:** [`docker-java`](https://github.com/docker-java/docker-java) library for native daemon communication
-- **Build Tool:** [Maven](https://maven.apache.org/)
-- **Development:** [Spring Boot DevTools](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using.devtools) for rapid hot-reloading and development cycle acceleration.
+- **Build Tool:** [Maven](https://maven.apache.org/) (Multi-stage Docker builds)
+- **Deployment:** Containerized via Docker Compose, connecting to a dedicated `postgres` container.
 
 ## 📡 API Documentation
 
@@ -66,7 +66,7 @@ All REST APIs are prefixed with `/api`. Protected routes require an `Authorizati
 
 ### Files (`/api/files`) *[Protected]*
 - `GET /` (`?envId=X&path=Y&action=read|list`)
-  - Returns file contents or directory listings.
+  - Returns file contents or deep recursive directory listings (`Files.walk`) preserving full hierarchical structures.
 - `POST /`
   - Writes data directly to a file (creates or overwrites).
 - `POST /dir`
@@ -80,4 +80,4 @@ All REST APIs are prefixed with `/api`. Protected routes require an `Authorizati
 
 ## ⚙️ Configuration
 
-Configuration is managed centrally via `src/main/resources/application.yml` and overridable via the `.env` file at the root of the server directory.
+Configuration is managed centrally via `src/main/resources/application.yml` and overridable via the `.env` file at the root of the server directory. The host workspace mapping relies on the `WORKSPACE_HOST` environment variable to bind-mount directories into Docker containers securely.

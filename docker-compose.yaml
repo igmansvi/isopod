@@ -1,0 +1,83 @@
+name: "isopod"
+
+networks:
+  isopod_net:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: m4vi
+      POSTGRES_PASSWORD: isopod@m4vi
+      POSTGRES_DB: isopod
+    volumes:
+      - pgdata:/var/lib/postgresql
+    networks:
+      - isopod_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U isopod -d isopod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  client:
+    build:
+      context: ./client
+    restart: unless-stopped
+    networks:
+      - isopod_net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  server:
+    build:
+      context: ./server
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/isopod
+      SPRING_DATASOURCE_USERNAME: m4vi
+      SPRING_DATASOURCE_PASSWORD: isopod@m4vi
+      WORKSPACE_ROOT: /workspaces
+      WORKSPACE_HOST: ${PWD}/workspaces
+      DOCKER_HOST: unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./workspaces:/workspaces
+    networks:
+      - isopod_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - isopod_net
+    depends_on:
+      client:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  pgdata:
