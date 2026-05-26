@@ -1,0 +1,51 @@
+<div class="min-h-screen bg-black text-white flex items-center justify-center">
+  <div class="border border-white p-8 w-96 flex flex-col items-center">
+    <div class="flex items-center gap-2 mb-4">
+      <img src="icon.svg" class="w-6 h-6" alt="Isopod Logo" />
+      <span class="text-xl font-bold">Isopod</span>
+    </div>
+    
+    <h2 class="text-lg font-semibold mb-6">Sign in</h2>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="w-full flex flex-col items-center">
+      
+      <div *ngIf="errorMessage()" class="w-full mb-4 p-2 border border-red-500 text-red-500 text-xs text-center">
+        {{ errorMessage() }}
+      </div>
+
+      <div class="flex flex-col gap-1 w-full mb-4">
+        <label for="username" class="text-sm">Username</label>
+        <input 
+          id="username" 
+          type="text" 
+          formControlName="username" 
+          class="bg-black border border-white text-white p-2 text-sm focus:outline-none w-full"
+          [ngClass]="{'border-red-500': loginForm.get('username')?.invalid && loginForm.get('username')?.touched}"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1 w-full mb-6">
+        <label for="password" class="text-sm">Password</label>
+        <input 
+          id="password" 
+          type="password" 
+          formControlName="password" 
+          class="bg-black border border-white text-white p-2 text-sm focus:outline-none w-full"
+          [ngClass]="{'border-red-500': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}"
+        />
+      </div>
+
+      <button 
+        type="submit" 
+        [disabled]="isLoading()"
+        class="text-sm font-semibold hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mb-6">
+        <span *ngIf="isLoading()">Signing in...</span>
+        <span *ngIf="!isLoading()">Sign in</span>
+      </button>
+      
+      <div class="text-xs text-neutral-400 w-full text-center border-t border-neutral-800 pt-6">
+        Don't have an account? <a routerLink="/auth/register" class="text-white hover:underline">Register</a>
+      </div>
+    </form>
+  </div>
+</div>
