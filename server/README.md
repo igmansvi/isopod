@@ -26,7 +26,7 @@ src/main/java/com/isopod/server/
 - **Framework:** [Spring Boot 3](https://spring.io/projects/spring-boot)
 - **Language:** [Java 21](https://adoptium.net/)
 - **Database:** [PostgreSQL](https://www.postgresql.org/) (via [Hibernate/Spring Data JPA](https://hibernate.org/))
-- **Caching:** [Redis](https://redis.io/) (via Spring Data Redis) with Graceful Degradation architectures
+- **Caching:** [Redis](https://redis.io/) (via Spring Data Redis) with Auto-detecting Graceful Degradation architectures
 - **Security:** [Spring Security 6](https://spring.io/projects/spring-security) + Stateless [JWT](https://jwt.io/)
 - **Docker:** [`docker-java`](https://github.com/docker-java/docker-java) library for native daemon communication
 - **Build Tool:** [Maven](https://maven.apache.org/) (Multi-stage Docker builds)
@@ -51,7 +51,7 @@ All REST APIs are prefixed with `/api`. Protected routes require an `Authorizati
 ### Health (`/api/health`) *[Public]*
 - `GET /`
   - Returns real-time system telemetry including Spring Boot status, Docker daemon availability, and a `cachedImages` list used by the frontend for dynamic environment templating.
-  - *Note: On server boot, the `HealthService` `CommandLineRunner` automatically validates Docker health and caches essential images (`ubuntu`, `node`, `gcc`, `eclipse-temurin`).*
+  - *Note: On server boot, the `HealthService` `CommandLineRunner` automatically logs infrastructure telemetry (PostgreSQL, Redis Fallback state), validates Docker health, and caches essential images (`ubuntu`, `node`, `gcc`, `eclipse-temurin`).*
 
 ### Environments (`/api/environments`) *[Protected]*
 - `GET /`

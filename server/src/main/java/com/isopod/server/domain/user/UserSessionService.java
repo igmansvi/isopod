@@ -1,7 +1,7 @@
 package com.isopod.server.domain.user;
 
+import com.isopod.server.core.cache.FallbackService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class UserSessionService {
 
-    private final StringRedisTemplate redisTemplate;
+    private final FallbackService fallbackService;
     private final UserRepository userRepository;
 
     private static final String SESSION_PREFIX = "session:";
@@ -28,14 +28,14 @@ public class UserSessionService {
     public void registerSession(String sessionId, String userId, String envId) {
         String key = SESSION_PREFIX + sessionId;
         String value = userId + ":" + envId;
-        redisTemplate.opsForValue().set(key, value, Duration.ofHours(24));
+        fallbackService.setValue(key, value, Duration.ofHours(24));
     }
 
     /**
      * Removes an active WebSocket session.
      */
     public void removeSession(String sessionId) {
-        redisTemplate.delete(SESSION_PREFIX + sessionId);
+        fallbackService.delete(SESSION_PREFIX + sessionId);
     }
 
     /**
@@ -47,7 +47,7 @@ public class UserSessionService {
      */
     public UserDetails getCachedUser(String username) throws UsernameNotFoundException {
         String cacheKey = CACHE_PREFIX + username;
-        String cachedHash = redisTemplate.opsForValue().get(cacheKey);
+        String cachedHash = fallbackService.getValue(cacheKey);
 
         if (cachedHash != null) {
             return org.springframework.security.core.userdetails.User
@@ -60,7 +60,7 @@ public class UserSessionService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        redisTemplate.opsForValue().set(cacheKey, user.getPasswordHash(), Duration.ofHours(1));
+        fallbackService.setValue(cacheKey, user.getPasswordHash(), Duration.ofHours(1));
 
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())

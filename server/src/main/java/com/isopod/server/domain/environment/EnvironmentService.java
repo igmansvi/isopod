@@ -70,7 +70,7 @@ public class EnvironmentService {
             throw new IllegalArgumentException("An environment with this name already exists");
         }
 
-        String image = request.getImage() != null && !request.getImage().isBlank() ? request.getImage() : "node:lts-alpine";
+        String image = request.getImage() != null && !request.getImage().isBlank() ? request.getImage() : "ubuntu:latest";
         
         try {
             dockerClient.inspectImageCmd(image).exec();

@@ -1,11 +1,14 @@
 package com.isopod.server.domain.health;
 
 import com.github.dockerjava.api.DockerClient;
+import com.isopod.server.core.cache.FallbackService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +22,8 @@ import java.util.Map;
 public class HealthService implements CommandLineRunner {
 
     private final DockerClient dockerClient;
+    private final FallbackService fallbackService;
+    private final DataSource dataSource;
     
     private final List<String> BASE_IMAGES = List.of(
             "ubuntu:latest",
@@ -29,6 +34,20 @@ public class HealthService implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        log.info("Performing Infrastructure Health Check...");
+        
+        try (Connection conn = dataSource.getConnection()) {
+            log.info("PostgreSQL Database is accessible.");
+        } catch (Exception e) {
+            log.warn("PostgreSQL Database is NOT accessible.");
+        }
+
+        if (fallbackService.isRedisEnabled()) {
+            log.info("Telemetry Caching: REDIS (Connected)");
+        } else {
+            log.info("Telemetry Caching: IN-MEMORY (Graceful Degradation)");
+        }
+
         log.info("Performing Docker daemon health check...");
         try {
             dockerClient.pingCmd().exec();

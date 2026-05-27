@@ -48,7 +48,7 @@ public class Environment {
 
     @Column(nullable = false)
     @Builder.Default
-    private String image = "node:lts-alpine";
+    private String image = "ubuntu:latest";
 
     @Column
     private String containerId;
