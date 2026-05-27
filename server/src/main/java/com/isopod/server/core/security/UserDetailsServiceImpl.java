@@ -1,14 +1,11 @@
 package com.isopod.server.core.security;
 
-import com.isopod.server.domain.user.User;
-import com.isopod.server.domain.user.UserRepository;
+import com.isopod.server.domain.user.UserSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
 
 /**
  * Implementation of UserDetailsService to integrate Spring Security
@@ -18,7 +15,7 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final UserSessionService userSessionService;
 
     /**
      * Loads a user from the database by their username.
@@ -29,13 +26,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPasswordHash())
-                .authorities(Collections.emptyList())
-                .build();
+        return userSessionService.getCachedUser(username);
     }
 }

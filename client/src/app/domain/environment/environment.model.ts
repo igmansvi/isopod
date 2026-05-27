@@ -10,6 +10,7 @@ export interface Environment {
   workspacePath: string;
   createdAt: string;
   updatedAt: string;
+  lastAccessedAt: string;
 }
 
 /**

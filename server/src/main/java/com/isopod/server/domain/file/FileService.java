@@ -43,6 +43,10 @@ public class FileService {
         try (Stream<Path> stream = Files.walk(targetPath)) {
             return stream
                     .filter(p -> !p.equals(targetPath))
+                    .filter(p -> {
+                        String rel = targetPath.relativize(p).toString().replace('\\', '/');
+                        return !rel.equals("tmp") && !rel.startsWith("tmp/");
+                    })
                     .map(path -> {
                         String relative = targetPath.relativize(path).toString().replace('\\', '/');
                         return relative + (Files.isDirectory(path) ? "/" : "");

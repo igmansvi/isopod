@@ -249,4 +249,17 @@ public class EnvironmentService {
             FileSystemUtils.deleteRecursively(userWorkspaceDir);
         }
     }
+
+    /**
+     * Updates the last accessed timestamp for the given environment.
+     *
+     * @param envId the environment ID
+     */
+    public void updateLastAccessedAt(String envId) {
+        Environment env = environmentRepository.findById(envId).orElse(null);
+        if (env != null) {
+            env.setLastAccessedAt(java.time.Instant.now());
+            environmentRepository.save(env);
+        }
+    }
 }

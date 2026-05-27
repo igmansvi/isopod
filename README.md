@@ -11,8 +11,9 @@ Isopod is a modern, web-based, containerized development environment platform. I
 - **Authentication:** Secure user registration and login powered by Stateless JWTs and Spring Security.
 - **Isolated Sandboxes:** On-demand [Docker](https://www.docker.com/) containers tailored for specific environments.
 - **In-Browser IDE:**
-  - **Terminal:** Fully interactive shell access to your container using [xterm.js](https://xtermjs.org/), bridged over WebSockets.
-  - **Code Editor:** Rich editing experience powered by the [Monaco Editor](https://microsoft.github.io/monaco-editor/) engine with native save persistence.
+  - **Terminal:** Fully interactive shell access to your container using [xterm.js](https://xtermjs.org/), bridged over WebSockets. Features intelligent AFK log buffering (3s) and automated ANSI-stripping.
+  - **Code Editor:** Rich editing experience powered by the [Monaco Editor](https://microsoft.github.io/monaco-editor/) engine with a smart 2-second background auto-save mechanism.
+- **Redis Session Management:** High-performance centralized state caching and telemetry. Dynamically falls back to generic In-Memory queues if Redis is disabled.
 - **Persistence:** Workspaces are bind-mounted to the host filesystem, ensuring your code persists across container restarts.
 - **Global State Management:** High-performance architecture powered by native Angular Signals.
 - **Data Lifecycle Management:** Full capabilities to safely start, stop, and purge database records and Docker containers.
@@ -23,6 +24,7 @@ Isopod is a modern, web-based, containerized development environment platform. I
 - **State Management:** [Angular Signals](https://angular.dev/guide/signals) (`signal`, `computed`)
 - **Backend:** [Java 21](https://adoptium.net/), [Spring Boot 3](https://spring.io/projects/spring-boot) (REST APIs, WebSocket Handlers, [Spring Security](https://spring.io/projects/spring-security))
 - **Database:** [PostgreSQL](https://www.postgresql.org/) via [Hibernate/JPA](https://hibernate.org/)
+- **Caching & Telemetry:** [Redis](https://redis.io/)
 - **Infrastructure:** [docker-java](https://github.com/docker-java/docker-java) for native Docker daemon bridging.
 
 ## 📚 Module Documentation
