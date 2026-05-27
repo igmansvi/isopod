@@ -78,8 +78,12 @@ public class EnvironmentService {
             dockerClient.pullImageCmd(image).start();
         }
 
-        String localWorkspacePath = new File(workspacesRoot, username + File.separator + request.getName()).getAbsolutePath();
-        String hostWorkspacePath = hostWorkspacesRoot + "/" + username + "/" + request.getName();
+        String localWorkspacePath = new java.io.File(workspacesRoot, username + "/" + request.getName()).getAbsolutePath().replace("\\", "/");
+        String hostBase = hostWorkspacesRoot;
+        if (hostBase.startsWith("./") || hostBase.startsWith("../")) {
+            hostBase = new java.io.File(hostBase).getAbsolutePath().replace("\\", "/");
+        }
+        String hostWorkspacePath = hostBase + "/" + username + "/" + request.getName();
         File workspaceDir = new File(localWorkspacePath);
         if (!workspaceDir.exists()) {
             workspaceDir.mkdirs();
@@ -131,8 +135,12 @@ public class EnvironmentService {
             dockerClient.pullImageCmd(image).start();
         }
 
-        String localWorkspacePath = new File(workspacesRoot, username + File.separator + envName).getAbsolutePath();
-        String hostWorkspacePath = hostWorkspacesRoot + "/" + username + "/" + envName;
+        String localWorkspacePath = new java.io.File(workspacesRoot, username + "/" + envName).getAbsolutePath().replace("\\", "/");
+        String hostBase = hostWorkspacesRoot;
+        if (hostBase.startsWith("./") || hostBase.startsWith("../")) {
+            hostBase = new java.io.File(hostBase).getAbsolutePath().replace("\\", "/");
+        }
+        String hostWorkspacePath = hostBase + "/" + username + "/" + envName;
         File workspaceDir = new File(localWorkspacePath);
         if (!workspaceDir.exists()) {
             workspaceDir.mkdirs();
