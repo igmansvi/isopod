@@ -37,11 +37,11 @@ src/app/
 ### 1. Editor Domain (`domain/editor`)
 The core IDE experience is constructed by wiring three distinct components together in `EditorComponent`:
 - **`FileTreeComponent`**: Fetches the workspace hierarchy using `ApiService` and renders a clean, clickable file sidebar. Includes a 3-second background polling mechanism to stay perfectly in sync with terminal filesystem modifications.
-- **`CodeEditorComponent`**: Natively integrates Microsoft's Monaco Editor engine with custom `Ctrl+S` keybindings to persist data.
+- **`CodeEditorComponent`**: Natively integrates Microsoft's Monaco Editor engine. It features an automated RxJS `debounceTime` (2s) stream that seamlessly persists data when a user stops typing, alongside standard `Ctrl+S` keybindings.
 - **`TerminalComponent`**: Instantiates `xterm.js` and securely pipes bidirectional streams directly to the Spring Boot backend via the `WebSocketService`.
 
 ### 2. Environment Domain (`domain/environment`)
-- **`DashboardComponent`**: Renders a dynamic, fully responsive CSS grid of user workspaces. Supports instant environment creation (using dynamically fetched templates from the Health API), start/stop toggling, and deletion workflows, leveraging Tailwind for high-end micro-interactions. All UI rendering strictly uses the modern Angular `@if`/`@for` block control flow syntax for optimized performance.
+- **`DashboardComponent`**: Renders a dynamic, fully responsive CSS grid of user workspaces over a faint centralized Isopod watermark. Supports instant environment creation, start/stop toggling, and deletion workflows. Accurately maps UTC `Instant` ISO timestamps from the backend into the browser's local timezone. All UI rendering strictly uses the modern Angular `@if`/`@for` block control flow syntax for optimized performance.
 
 ### 3. Authentication Domain (`domain/auth`)
 - **`AuthStateService`**: A centralized Signal-based store replacing traditional state management libraries (like NgRx or Zustand). Holds the JWT token and user session data reactivity.

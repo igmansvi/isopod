@@ -16,8 +16,9 @@ src/main/java/com/isopod/server/
 │
 └── domain/                     # Business logic domains
     ├── auth/                   # Registration, Login, and Auth DTOs
-    ├── environment/            # Docker provisioning, start/stop logic
-    └── file/                   # Host-to-Container bind mount file management
+    ├── environment/            # Docker provisioning, start/stop logic, Terminal Logging
+    ├── file/                   # Host-to-Container bind mount file management
+    └── user/                   # User Session Caching and Graceful Fallback abstractions
 ```
 
 ## 🚀 Technologies Used
@@ -25,6 +26,7 @@ src/main/java/com/isopod/server/
 - **Framework:** [Spring Boot 3](https://spring.io/projects/spring-boot)
 - **Language:** [Java 21](https://adoptium.net/)
 - **Database:** [PostgreSQL](https://www.postgresql.org/) (via [Hibernate/Spring Data JPA](https://hibernate.org/))
+- **Caching:** [Redis](https://redis.io/) (via Spring Data Redis) with Graceful Degradation architectures
 - **Security:** [Spring Security 6](https://spring.io/projects/spring-security) + Stateless [JWT](https://jwt.io/)
 - **Docker:** [`docker-java`](https://github.com/docker-java/docker-java) library for native daemon communication
 - **Build Tool:** [Maven](https://maven.apache.org/) (Multi-stage Docker builds)

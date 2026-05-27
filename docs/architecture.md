@@ -21,6 +21,7 @@ The system is structurally divided into three primary tiers:
 ### Backend (Spring Boot)
 - **Spring Security Chain:** Intercepts all `/api/**` traffic, validating stateless [JWT](https://jwt.io/) signatures via [Spring Security 6](https://spring.io/projects/spring-security). The `UsernamePasswordAuthenticationToken` is injected into the security context for controller use.
 - **Docker-Java Orchestration:** The `EnvironmentService` communicates with the local Docker daemon socket (`//./pipe/docker_engine` on Windows or `/var/run/docker.sock` on Linux/macOS) using the [`docker-java`](https://github.com/docker-java/docker-java) dependency. It is responsible for `createCmd`, `startCmd`, and `stopCmd`.
+- **Session & Telemetry Caching:** Employs [Redis](https://redis.io/) to cache `UserDetails` (bypassing heavy PostgreSQL queries on every WebSocket message) and to buffer raw terminal telemetry. Incorporates a Graceful Degradation pattern to fallback to `ConcurrentHashMap` in-memory queues if Redis is explicitly disabled via `application.yml`.
 - **Bind Mounting:** To ensure data persistence across container restarts, workspaces are physically stored on the host and bind-mounted directly to `/workspace` inside the running container. The exact host path is strictly managed by the portable `WORKSPACE_HOST` environment variable injected via Docker Compose.
 - **Database:** Data is persisted in [PostgreSQL](https://www.postgresql.org/) managed by [Hibernate/JPA](https://hibernate.org/).
 
@@ -45,10 +46,11 @@ The entire platform runs inside a bridged Docker network (`isopod_net`) orchestr
 2. The Spring `TerminalWebSocketHandler` receives the connection and extracts the JWT token.
 3. The backend executes an `execCreateCmd` targeting the specific Docker container with `/bin/sh` or `/bin/bash` and attaches standard I/O streams.
 4. A bidirectional byte stream is established: User keystrokes flow to the container via `execStartCmd` stream, and Docker stdout/stderr flows back down the WebSocket to `xterm.js`.
+5. **AFK Telemetry:** Raw terminal output is simultaneously buffered in Redis. A background `@Scheduled` thread polls this buffer; if 3 seconds of AFK (Away From Keyboard) time pass, the ANSI-stripped bytes are flushed natively to a text log file inside the user's workspace `.tmp` folder.
 
 ### C. File Editing
 1. **Read:** The Angular `FileTreeComponent` selects a file. A `GET /api/files?action=read` is fired. The backend reads the physical host file from `workspaces/{envId}/{path}` and returns the content.
-2. **Write:** The user presses `Ctrl+S`. A `POST /api/files` pushes the payload. The backend overwrites the host file, instantly reflecting the changes inside the running bind-mounted Docker container.
+2. **Write:** The Angular editor leverages a highly responsive 2-second RxJS `debounceTime` stream. When the user stops typing, it triggers a `POST /api/files` in the background (or explicitly on `Ctrl+S`). The backend overwrites the host file, instantly reflecting the changes inside the running bind-mounted Docker container.
 
 ### D. Cascading Account Deletion
 1. User confirms account deletion via a strict prompt in the Angular UI.

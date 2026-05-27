@@ -6,6 +6,9 @@ import com.github.dockerjava.api.command.ExecCreateCmdResponse;
 import com.github.dockerjava.api.model.Frame;
 import com.isopod.server.domain.environment.Environment;
 import com.isopod.server.domain.environment.EnvironmentRepository;
+import com.isopod.server.domain.environment.EnvironmentService;
+import com.isopod.server.domain.environment.TerminalLoggingService;
+import com.isopod.server.domain.user.UserSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -29,6 +32,9 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
 
     private final DockerClient dockerClient;
     private final EnvironmentRepository environmentRepository;
+    private final EnvironmentService environmentService;
+    private final TerminalLoggingService terminalLoggingService;
+    private final UserSessionService userSessionService;
 
     private final Map<String, PipedOutputStream> sessionInputStreams = new ConcurrentHashMap<>();
     private final Map<String, ResultCallback<Frame>> sessionOutputCallbacks = new ConcurrentHashMap<>();
@@ -56,6 +62,9 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
+        userSessionService.registerSession(session.getId(), env.getUser().getId(), env.getId());
+        environmentService.updateLastAccessedAt(env.getId());
+
         ExecCreateCmdResponse execResponse = dockerClient.execCreateCmd(env.getContainerId())
                 .withAttachStdout(true)
                 .withAttachStderr(true)
@@ -75,6 +84,7 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
                     if (session.isOpen()) {
                         String text = new String(frame.getPayload(), StandardCharsets.UTF_8);
                         session.sendMessage(new TextMessage(text));
+                        terminalLoggingService.bufferLog(envId, text);
                     }
                 } catch (IOException e) {
                 }
@@ -95,7 +105,6 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
                         session.close();
                     }
                 } catch (IOException e) {
-                    // Ignore
                 }
             }
         };
@@ -139,6 +148,8 @@ public class TerminalWebSocketHandler extends TextWebSocketHandler {
         if (out != null) {
             out.close();
         }
+        
+        userSessionService.removeSession(session.getId());
 
         ResultCallback<Frame> callback = sessionOutputCallbacks.remove(session.getId());
         if (callback != null) {

@@ -1,5 +1,7 @@
 import { Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild, AfterViewInit } from '@angular/core';
 import loader from '@monaco-editor/loader';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 /**
  * Standalone component safely wrapping the Monaco Editor.
@@ -20,6 +22,17 @@ export class CodeEditorComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   private editorInstance: any;
   private isInitializing = false;
+  
+  private readonly afkSaveSubject = new Subject<string>();
+  private afkSubscription?: Subscription;
+
+  constructor() {
+    this.afkSubscription = this.afkSaveSubject.pipe(
+      debounceTime(2000)
+    ).subscribe(content => {
+      this.saveRequested.emit(content);
+    });
+  }
 
   /**
    * Initializes the Monaco Editor via the official AMD loader.
@@ -40,7 +53,9 @@ export class CodeEditorComponent implements AfterViewInit, OnChanges, OnDestroy 
       this.isInitializing = false;
 
       this.editorInstance.onDidChangeModelContent(() => {
-        this.contentChanged.emit(this.editorInstance.getValue());
+        const val = this.editorInstance.getValue();
+        this.contentChanged.emit(val);
+        this.afkSaveSubject.next(val);
       });
 
       this.editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
@@ -71,6 +86,9 @@ export class CodeEditorComponent implements AfterViewInit, OnChanges, OnDestroy 
   public ngOnDestroy(): void {
     if (this.editorInstance) {
       this.editorInstance.dispose();
+    }
+    if (this.afkSubscription) {
+      this.afkSubscription.unsubscribe();
     }
   }
 }
