@@ -21,7 +21,7 @@ The system is structurally divided into three primary tiers:
 ### Backend (Spring Boot)
 - **Spring Security Chain:** Intercepts all `/api/**` traffic, validating stateless [JWT](https://jwt.io/) signatures via [Spring Security 6](https://spring.io/projects/spring-security). The `UsernamePasswordAuthenticationToken` is injected into the security context for controller use.
 - **Docker-Java Orchestration:** The `EnvironmentService` communicates with the local Docker daemon socket (`//./pipe/docker_engine` on Windows or `/var/run/docker.sock` on Linux/macOS) using the [`docker-java`](https://github.com/docker-java/docker-java) dependency. It is responsible for `createCmd`, `startCmd`, and `stopCmd`.
-- **Session & Telemetry Caching:** Employs [Redis](https://redis.io/) to cache `UserDetails` (bypassing heavy PostgreSQL queries on every WebSocket message) and to buffer raw terminal telemetry. Incorporates a Graceful Degradation pattern to fallback to `ConcurrentHashMap` in-memory queues if Redis is explicitly disabled via `application.yml`.
+- **Session & Telemetry Caching:** Employs [Redis](https://redis.io/) to cache `UserDetails` (bypassing heavy PostgreSQL queries on every WebSocket message) and to buffer raw terminal telemetry. Incorporates a Graceful Degradation pattern using the `FallbackService` abstraction. It instantly auto-detects Redis availability on startup via a connection ping and gracefully degrades to highly concurrent in-memory stores (`ConcurrentHashMap`, `ConcurrentLinkedQueue`) if the connection fails, entirely removing the need for manual feature flags.
 - **Bind Mounting:** To ensure data persistence across container restarts, workspaces are physically stored on the host and bind-mounted directly to `/workspace` inside the running container. The exact host path is strictly managed by the portable `WORKSPACE_HOST` environment variable injected via Docker Compose.
 - **Database:** Data is persisted in [PostgreSQL](https://www.postgresql.org/) managed by [Hibernate/JPA](https://hibernate.org/).
 
@@ -31,6 +31,7 @@ The entire platform runs inside a bridged Docker network (`isopod_net`) orchestr
 - Requests starting with `/api/*` and `/ws/*` are reverse-proxied to the `server` container on port `8080`.
 - All other requests (`/*`) fall back to the `client` container serving the compiled Angular frontend.
 - This topology eliminates CORS issues completely and provides a unified origin for the application.
+- **Strict Boot Order:** The system orchestrates container launches sequentially. The `server` container guarantees connection stability by implementing explicit `depends_on: service_healthy` blocks for both `postgres` and `redis`.
 
 ## 3. Data Flows
 
@@ -61,7 +62,7 @@ The entire platform runs inside a bridged Docker network (`isopod_net`) orchestr
 
 ### E. Auto-Provisioning & System Telemetry
 - **Registration Hook:** When a user registers via `POST /api/auth/register`, the `AuthService` dynamically calls `EnvironmentService` to immediately provision an `ubuntu:latest` container (named `default-ubuntu`). The container is intentionally left in a `stopped` state to conserve RAM while ensuring an instant out-of-the-box user experience.
-- **Health Telemetry:** On Spring Boot startup, a `CommandLineRunner` executes a Docker daemon ping and aggressively pulls core base images (`ubuntu:latest`, `node:latest`, `gcc:latest`, `eclipse-temurin:latest`) into the host cache. The `/api/health` endpoint exposes this real-time system status to the Angular `/health` visualization dashboard.
+- **Health Telemetry:** On Spring Boot startup, a `CommandLineRunner` explicitly checks and logs infrastructure connectivity (PostgreSQL and Redis/In-Memory state), executes a Docker daemon ping, and aggressively pulls core base images (`ubuntu:latest`, `node:latest`, `gcc:latest`, `eclipse-temurin:latest`) into the host cache. The `/api/health` endpoint exposes this real-time system status to the Angular `/health` visualization dashboard.
 
 ### F. File System Operations & Synchronization
 The workspace IDE surface (`FileTreeComponent`) enables advanced file management via hover-actions.

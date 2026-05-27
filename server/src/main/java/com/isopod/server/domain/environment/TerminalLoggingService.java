@@ -1,8 +1,8 @@
 package com.isopod.server.domain.environment;
 
+import com.isopod.server.core.cache.FallbackService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class TerminalLoggingService {
 
-    private final StringRedisTemplate redisTemplate;
+    private final FallbackService fallbackService;
     private final EnvironmentRepository environmentRepository;
 
     @Value("${application.workspace.root:./workspaces}")
@@ -49,9 +49,9 @@ public class TerminalLoggingService {
      * @param data the raw output string from the terminal
      */
     public void bufferLog(String envId, String data) {
-        redisTemplate.opsForList().rightPush(LOGS_PREFIX + envId, data);
-        redisTemplate.opsForValue().set(ACTIVITY_PREFIX + envId, String.valueOf(System.currentTimeMillis()));
-        redisTemplate.opsForSet().add(ACTIVE_ENVS_KEY, envId);
+        fallbackService.rightPush(LOGS_PREFIX + envId, data);
+        fallbackService.setValue(ACTIVITY_PREFIX + envId, String.valueOf(System.currentTimeMillis()));
+        fallbackService.addSet(ACTIVE_ENVS_KEY, envId);
     }
 
     /**
@@ -61,7 +61,7 @@ public class TerminalLoggingService {
     @Scheduled(fixedDelay = 1000)
     @Transactional(readOnly = true)
     public void flushAfkLogs() {
-        Set<String> activeEnvs = redisTemplate.opsForSet().members(ACTIVE_ENVS_KEY);
+        Set<String> activeEnvs = fallbackService.getSet(ACTIVE_ENVS_KEY);
         if (activeEnvs == null || activeEnvs.isEmpty()) {
             return;
         }
@@ -69,7 +69,7 @@ public class TerminalLoggingService {
         long now = System.currentTimeMillis();
 
         for (String envId : activeEnvs) {
-            String lastActivityStr = redisTemplate.opsForValue().get(ACTIVITY_PREFIX + envId);
+            String lastActivityStr = fallbackService.getValue(ACTIVITY_PREFIX + envId);
             if (lastActivityStr == null) {
                 continue;
             }
@@ -84,19 +84,19 @@ public class TerminalLoggingService {
     private void flushEnvironmentLogs(String envId) {
         Environment env = environmentRepository.findById(envId).orElse(null);
         if (env == null) {
-            redisTemplate.delete(LOGS_PREFIX + envId);
-            redisTemplate.delete(ACTIVITY_PREFIX + envId);
-            redisTemplate.opsForSet().remove(ACTIVE_ENVS_KEY, envId);
+            fallbackService.delete(LOGS_PREFIX + envId);
+            fallbackService.delete(ACTIVITY_PREFIX + envId);
+            fallbackService.removeSet(ACTIVE_ENVS_KEY, envId);
             return;
         }
 
-        List<String> logs = redisTemplate.opsForList().range(LOGS_PREFIX + envId, 0, -1);
+        List<String> logs = fallbackService.getList(LOGS_PREFIX + envId);
         if (logs == null || logs.isEmpty()) {
-            redisTemplate.delete(ACTIVITY_PREFIX + envId);
-            redisTemplate.opsForSet().remove(ACTIVE_ENVS_KEY, envId);
+            fallbackService.delete(ACTIVITY_PREFIX + envId);
+            fallbackService.removeSet(ACTIVE_ENVS_KEY, envId);
             return;
         }
-        redisTemplate.delete(LOGS_PREFIX + envId);
+        fallbackService.delete(LOGS_PREFIX + envId);
 
         String username = env.getUser().getUsername();
         String envName = env.getName();
@@ -122,12 +122,12 @@ public class TerminalLoggingService {
 
             Files.writeString(logFilePath, finalOutput, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             
-            redisTemplate.delete(ACTIVITY_PREFIX + envId);
-            redisTemplate.opsForSet().remove(ACTIVE_ENVS_KEY, envId);
+            fallbackService.delete(ACTIVITY_PREFIX + envId);
+            fallbackService.removeSet(ACTIVE_ENVS_KEY, envId);
             
         } catch (IOException e) {
             e.printStackTrace();
-            redisTemplate.opsForList().rightPushAll(LOGS_PREFIX + envId, logs);
+            fallbackService.rightPushAll(LOGS_PREFIX + envId, logs);
         }
     }
 }

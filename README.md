@@ -13,7 +13,7 @@ Isopod is a modern, web-based, containerized development environment platform. I
 - **In-Browser IDE:**
   - **Terminal:** Fully interactive shell access to your container using [xterm.js](https://xtermjs.org/), bridged over WebSockets. Features intelligent AFK log buffering (3s) and automated ANSI-stripping.
   - **Code Editor:** Rich editing experience powered by the [Monaco Editor](https://microsoft.github.io/monaco-editor/) engine with a smart 2-second background auto-save mechanism.
-- **Redis Session Management:** High-performance centralized state caching and telemetry. Dynamically falls back to generic In-Memory queues if Redis is disabled.
+- **Redis Session Management:** High-performance centralized state caching and telemetry. Automatically detects Redis availability on startup and gracefully degrades to highly concurrent In-Memory queues if offline, eliminating manual configuration.
 - **Persistence:** Workspaces are bind-mounted to the host filesystem, ensuring your code persists across container restarts.
 - **Global State Management:** High-performance architecture powered by native Angular Signals.
 - **Data Lifecycle Management:** Full capabilities to safely start, stop, and purge database records and Docker containers.
