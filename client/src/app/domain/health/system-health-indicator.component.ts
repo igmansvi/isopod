@@ -11,7 +11,6 @@ import { HealthService, HealthStatus } from './health.service';
   imports: [CommonModule],
   template: `
     <div class="fixed bottom-6 right-6 z-50 group">
-      <!-- Hover Card -->
       <div
         class="absolute bottom-full right-0 mb-3 w-64 bg-black border border-white p-4 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
       >
@@ -43,7 +42,6 @@ import { HealthService, HealthStatus } from './health.service';
         </div>
       </div>
 
-      <!-- Indicator Dot -->
       <div
         class="w-4 h-4 rounded-full shadow-lg border border-neutral-800 flex items-center justify-center cursor-help transition-colors"
         [ngClass]="

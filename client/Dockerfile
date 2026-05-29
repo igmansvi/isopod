@@ -1,33 +1,22 @@
-# Stage 1: Build the Angular application
+# ==============================================================================
+# Stage 1: Client Build
+# Compiles the Angular Standalone Application for production distribution.
+# ==============================================================================
 FROM node:lts-alpine AS build
-
-# Set the working directory
 WORKDIR /app
-
-# Copy package.json and install dependencies
 COPY package*.json ./
 RUN npm install
-
-# Copy the rest of the client source code
 COPY . .
-
-# Build the Angular application for production
+RUN npm run build -- --configuration=production
 RUN npm run build -- --configuration=production
 
-# Stage 2: Serve the application with Node Alpine
+# ==============================================================================
+# Stage 2: Static Server
+# Provisions a lightweight Node Alpine environment to serve compiled assets.
+# ==============================================================================
 FROM node:lts-alpine
-
-# Set the working directory
 WORKDIR /app
-
-# Install the 'serve' package globally to serve static files
 RUN npm install -g serve
-
-# Copy the compiled Angular build artifacts from the build stage
 COPY --from=build /app/dist/client/browser ./dist
-
-# Expose port 8080 for HTTP traffic
 EXPOSE 8080
-
-# Start the static server
 CMD ["serve", "-s", "dist", "-l", "8080"]

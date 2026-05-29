@@ -25,6 +25,7 @@ Isopod is a modern, web-based, containerized development environment platform. I
 - **Backend:** [Java 21](https://adoptium.net/), [Spring Boot 3](https://spring.io/projects/spring-boot) (REST APIs, WebSocket Handlers, [Spring Security](https://spring.io/projects/spring-security))
 - **Database:** [PostgreSQL](https://www.postgresql.org/) via [Hibernate/JPA](https://hibernate.org/)
 - **Caching & Telemetry:** [Redis](https://redis.io/)
+- **Runtime:** [Eclipse Temurin 21 JRE](https://adoptium.net/), [Nginx](https://nginx.org/), [Supervisord](http://supervisord.org/)
 - **Infrastructure:** [docker-java](https://github.com/docker-java/docker-java) for native Docker daemon bridging.
 
 ## 📚 Module Documentation
@@ -38,17 +39,27 @@ Isopod is a monorepo consisting of two distinct modules. For detailed architectu
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### Quick Start (Single Container)
 
-Ensure you have the following installed on your machine:
-- [Java 21](https://adoptium.net/) or higher
-- [Node.js](https://nodejs.org/) (v18+)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (ensure the Docker daemon is running)
-- [PostgreSQL](https://www.postgresql.org/)
+Run the entire Isopod platform from a single pre-built Docker image. No dependencies, no configuration — just Docker.
 
-### 1. Local Development (Docker Compose)
+1. **Pull and run:**
+   ```bash
+   docker run -d -p 80:80 \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     --name isopod \
+     ghcr.io/igmansvi/isopod:latest
+   ```
 
-The entire Isopod stack is orchestrated via Docker Compose, which spins up the database, backend, frontend, and an Nginx reverse proxy simultaneously.
+2. **Access the application:** Open [http://localhost](http://localhost) in your browser.
+
+The container bundles PostgreSQL, Redis, Nginx, and the compiled application. All data (database, cache) lives inside the container, while workspaces are automatically persisted to a native anonymous Docker volume. The Docker socket mount enables spawning isolated workspace containers on the host that bind-mount directly to this volume.
+
+---
+
+### Development Setup (Docker Compose)
+
+For local development with hot-reloading and multi-container isolation:
 
 1. **Clone the repository:**
    ```bash
@@ -56,25 +67,26 @@ The entire Isopod stack is orchestrated via Docker Compose, which spins up the d
    cd isopod
    ```
 
-2. **Start the Stack:**
-   Ensure Docker Desktop is running, then execute:
+2. **Start the stack:**
    ```bash
    docker compose up -d
    ```
-   *Note: On first run, this will pull base images (Postgres, Nginx, Node, Eclipse Temurin) and build the client and server images from source. This may take a few minutes.*
 
-3. **Access the Application:**
-   Once all containers report as `healthy`, open [http://localhost](http://localhost) in your browser.
+3. **Access the application:** Once all containers report as `healthy`, open [http://localhost](http://localhost) in your browser.
 
-   The embedded **Nginx** container automatically routes traffic:
+   Nginx routes traffic automatically:
    - `/api/*` ➡️ Spring Boot Backend
    - `/ws/*` ➡️ Spring Boot WebSocket Handlers
-   - `/*` ➡️ Angular Frontend (Node static server)
+   - `/*` ➡️ Angular Frontend
 
-## 🐳 Docker Integration Details
+## 🐳 Docker Integration
 
-Isopod communicates with the host's Docker daemon to spawn workspace containers via `docker-java`.
-Containers are launched with a persistent bind mount to a local `workspaces/` directory.
+Isopod communicates with the host Docker daemon via [`docker-java`](https://github.com/docker-java/docker-java) to spawn isolated workspace containers.
+
+| Deployment | Image | Container Strategy |
+|------------|-------|-------------------|
+| **Quick Start** | `ghcr.io/igmansvi/isopod:latest` | Single self-contained container with all services managed by [Supervisord](http://supervisord.org/) |
+| **Development** | Built from `docker-compose.yaml` | Multi-container: PostgreSQL, Redis, Client, Server, Nginx on a bridged network |
 
 ## 📜 Documentation Standards
 

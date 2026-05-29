@@ -37,7 +37,6 @@
     @if (status()) {
       <div class="space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Server Card -->
           <div
             class="bg-neutral-900 border border-neutral-800 rounded-xl p-6 flex items-center justify-between"
           >
@@ -53,7 +52,6 @@
               <span class="font-mono text-sm uppercase">{{ status()!.server }}</span>
             </div>
           </div>
-          <!-- Docker Card -->
           <div
             class="bg-neutral-900 border border-neutral-800 rounded-xl p-6 flex items-center justify-between"
           >
@@ -70,7 +68,6 @@
             </div>
           </div>
         </div>
-        <!-- Pre-pulled Images List -->
         <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
           <h2 class="text-lg font-medium text-white mb-4">Cached Base Environments</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

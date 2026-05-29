@@ -11,6 +11,16 @@ import {
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 
+/**
+ * FileTreeComponent
+ * 
+ * Renders a hierarchical file explorer for the user's workspace environment.
+ * Responsible for displaying the folder structure, managing file selection state,
+ * and presenting modal interfaces for file creation and deletion operations.
+ * 
+ * The component relies on a deep-sorting algorithm to guarantee nested files
+ * are correctly indented beneath their respective parent directories visually.
+ */
 @Component({
   selector: 'app-file-tree',
   standalone: true,
@@ -54,7 +64,6 @@ import { ApiService } from '../../core/services/api.service';
               />
             </svg>
           </button>
-          <!-- Refresh -->
           <button
             (click)="loadFiles()"
             class="text-neutral-500 hover:text-white transition-colors"
@@ -127,7 +136,6 @@ import { ApiService } from '../../core/services/api.service';
                     file.endsWith('/') ? file.slice(0, -1).split('/').pop() : file.split('/').pop()
                   }}</span>
                 </button>
-                <!-- Hover Actions -->
                 <div
                   class="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center"
                 >
@@ -156,7 +164,6 @@ import { ApiService } from '../../core/services/api.service';
         }
       </div>
 
-      <!-- Create Modal -->
       @if (showCreateModal) {
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <div class="border border-white p-6 w-125 bg-black">
@@ -207,7 +214,6 @@ import { ApiService } from '../../core/services/api.service';
         </div>
       }
 
-      <!-- Delete Modal -->
       @if (showDeleteModal) {
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <div class="border border-white p-6 w-125 bg-black">
@@ -286,11 +292,20 @@ export class FileTreeComponent implements OnInit {
     this.apiService.get<string[]>(`/files?envId=${this.envId}&action=list`).subscribe({
       next: (data) => {
         const sorted = data.sort((a, b) => {
-          const aIsDir = a.endsWith('/');
-          const bIsDir = b.endsWith('/');
-          if (aIsDir && !bIsDir) return -1;
-          if (!aIsDir && bIsDir) return 1;
-          return a.localeCompare(b);
+          const aParts = a.split('/');
+          const bParts = b.split('/');
+          if (a.endsWith('/')) aParts.pop();
+          if (b.endsWith('/')) bParts.pop();
+          const minLen = Math.min(aParts.length, bParts.length);
+          for (let i = 0; i < minLen; i++) {
+            if (aParts[i] !== bParts[i]) {
+              const aIsDir = i < aParts.length - 1 || a.endsWith('/');
+              const bIsDir = i < bParts.length - 1 || b.endsWith('/');
+              if (aIsDir !== bIsDir) return aIsDir ? -1 : 1;
+              return aParts[i].localeCompare(bParts[i]);
+            }
+          }
+          return aParts.length - bParts.length;
         });
 
         if (JSON.stringify(this.files()) !== JSON.stringify(sorted)) {

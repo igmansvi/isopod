@@ -1,6 +1,5 @@
 <div class="h-screen w-full flex flex-col bg-neutral-950 text-neutral-50 overflow-hidden relative">
-  <!-- Editor Top Bar -->
-  <header
+<header
     class="h-12 border-b border-neutral-800 bg-neutral-900 flex items-center px-4 justify-between shrink-0 relative z-20"
   >
     <div class="flex items-center space-x-4">
@@ -76,9 +75,7 @@
     <div class="flex items-center text-xs text-neutral-500 font-mono">IDE</div>
   </header>
 
-  <!-- Editor Main Area -->
   <main class="flex-1 flex overflow-hidden">
-    <!-- File Explorer Sidebar -->
     @if (envId) {
       <app-file-tree
         #fileTree
@@ -89,9 +86,7 @@
       </app-file-tree>
     }
 
-    <!-- Main Content Split (Code Editor Top, Terminal Bottom) -->
     <section class="flex-1 flex flex-col bg-editor-bg relative min-w-0">
-      <!-- Code Editor Area -->
       <div class="flex-1 flex flex-col relative min-h-editor-panel">
         @if (selectedFile()) {
           <div class="h-9 bg-editor-bg border-b border-editor-border flex items-center px-4">
@@ -140,12 +135,10 @@
         </div>
       </div>
 
-      <!-- Terminal Resizer Handle -->
       <div
         class="h-1 bg-editor-border cursor-row-resize hover:bg-blue-500 transition-colors z-10 shrink-0"
       ></div>
 
-      <!-- Terminal Area -->
       <div class="h-terminal-panel min-h-terminal-min flex flex-col shrink-0 bg-terminal-bg relative">
         <div class="h-8 bg-terminal-header border-b border-editor-border flex items-center px-4">
           <span class="text-xs text-neutral-400 font-mono flex items-center gap-2">
