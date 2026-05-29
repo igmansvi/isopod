@@ -3,6 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HealthService, HealthStatus } from './health.service';
 
+/**
+ * HealthDashboardComponent
+ * 
+ * Provides a dedicated route and view for system administrators to check
+ * the live telemetry and operational status of all backend infrastructure components.
+ */
 @Component({
   selector: 'app-health-dashboard',
   standalone: true,

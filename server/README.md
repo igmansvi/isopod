@@ -9,6 +9,7 @@ The backend follows a strict Domain-Driven Design (DDD) package structure:
 ```text
 src/main/java/com/isopod/server/
 ├── core/                       # Cross-cutting concerns
+│   ├── cache/                  # Redis/In-Memory Graceful Degradation (FallbackService)
 │   ├── config/                 # Application & Security configurations
 │   ├── exception/              # Global exception handling (@RestControllerAdvice)
 │   ├── security/               # JWT Filters, Authentication Providers, Security Chains
@@ -18,7 +19,7 @@ src/main/java/com/isopod/server/
     ├── auth/                   # Registration, Login, and Auth DTOs
     ├── environment/            # Docker provisioning, start/stop logic, Terminal Logging
     ├── file/                   # Host-to-Container bind mount file management
-    └── user/                   # User Session Caching and Graceful Fallback abstractions
+    └── user/                   # User Session Caching
 ```
 
 ## 🚀 Technologies Used

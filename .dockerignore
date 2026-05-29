@@ -1,0 +1,13 @@
+.git
+.github
+workspaces
+docs
+docker-compose.yaml
+README.md
+LICENSE
+client/node_modules
+client/.angular
+client/dist
+server/target
+**/.env
+**/.env.example

@@ -1,4 +1,4 @@
-name: Publish Docker Images
+name: Publish Isopod Image
 
 on:
   push:
@@ -27,36 +27,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata for Client
-        id: meta-client
+      - name: Extract metadata
+        id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-client
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha
 
-      - name: Build and push Client
+      - name: Build and push
         uses: docker/build-push-action@v7
         with:
-          context: ./client
+          context: .
           push: true
-          tags: ${{ steps.meta-client.outputs.tags }}
-          labels: ${{ steps.meta-client.outputs.labels }}
-
-      - name: Extract metadata for Server
-        id: meta-server
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-server
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=sha
-
-      - name: Build and push Server
-        uses: docker/build-push-action@v7
-        with:
-          context: ./server
-          push: true
-          tags: ${{ steps.meta-server.outputs.tags }}
-          labels: ${{ steps.meta-server.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
